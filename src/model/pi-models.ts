@@ -89,6 +89,21 @@ export const MODEL_REGISTRY: readonly ModelEntry[] = [
   { id: "openrouter/auto", name: "OpenRouter Auto", fastMode: false, webui: true, base: true },
   { id: "claude-opus-4-7", name: "Claude Opus 4.7", fastMode: true, webui: false, base: false },
   { id: "claude-opus-4-6", name: "Claude Opus 4.6", fastMode: true, webui: false, base: false },
+  {
+    id: "deepseek-v4-flash",
+    name: "DeepSeek V4 Flash",
+    fastMode: false,
+    webui: true,
+    base: true,
+    clone: {
+      template: "claude-sonnet-4-5",
+      input: 0.3,
+      output: 1.2,
+      cacheWrite: 0.3,
+      contextWindow: 128_000,
+      maxTokens: 8_192,
+    },
+  },
 ];
 
 const REGISTRY_BY_ID = new Map(MODEL_REGISTRY.map((m) => [m.id, m]));
@@ -127,22 +142,29 @@ function cloneModel(model: PiModel, id: string, name: string, overrides: Partial
 
 export function resolveModel(id: string): PiModel | undefined {
   const entry = REGISTRY_BY_ID.get(id);
-  if (entry?.clone) {
-    const template = builtinModel(entry.clone.template);
-    return template
-      ? cloneModel(template, id, entry.name, {
-          contextWindow: entry.clone.contextWindow,
-          maxTokens: entry.clone.maxTokens,
-          cost: {
-            input: entry.clone.input,
-            output: entry.clone.output,
-            cacheRead: entry.clone.input / 10,
-            cacheWrite: entry.clone.cacheWrite ?? 0,
-          },
-        })
-      : undefined;
+  const model = entry?.clone
+    ? (() => {
+        const template = builtinModel(entry.clone.template);
+        return template
+          ? cloneModel(template, id, entry.name, {
+              contextWindow: entry.clone.contextWindow,
+              maxTokens: entry.clone.maxTokens,
+              cost: {
+                input: entry.clone.input,
+                output: entry.clone.output,
+                cacheRead: entry.clone.input / 10,
+                cacheWrite: entry.clone.cacheWrite ?? 0,
+              },
+            })
+          : undefined;
+      })()
+    : builtinModel(id);
+  if (!model) return undefined;
+  const proxy = process.env.ANTHROPIC_BASE_URL?.trim();
+  if (proxy && String(model.provider ?? "") === "anthropic") {
+    return { ...model, baseUrl: proxy.replace(/\/+$/, "") };
   }
-  return builtinModel(id);
+  return model;
 }
 
 export function auxiliaryModelForProvider(provider: string): string | undefined {

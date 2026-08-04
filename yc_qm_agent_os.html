@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YC QM: 企业级 AI Agent 操作系统深度解析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            scroll-behavior: smooth;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px -12px rgba(15, 23, 42, 0.08);
+        }
+
+        .nav-link {
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #ea580c;
+            transition: width 0.2s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .step-active {
+            border-left: 4px solid #ea580c;
+            background: #fff7ed;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .tab-btn-active {
+            background-color: #ea580c;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-orange-100 selection:text-orange-900">
+
+<nav class="fixed top-0 w-full z-50 glass-card px-6 py-3.5 border-b border-slate-200/80">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-black text-xl shadow-md shadow-orange-500/20">
+                QM
+            </div>
+            <div>
+                <span class="font-bold text-slate-900 text-base tracking-tight">YC Quartermaster</span>
+                <span class="block text-[10px] text-slate-500 font-medium -mt-1">Multiplayer Agent Harness for Work</span>
+            </div>
+        </div>
+        <div class="hidden lg:flex space-x-7 font-medium text-xs text-slate-600 uppercase tracking-wider">
+            <a href="#intro" class="nav-link">核心亮点</a>
+            <a href="#arch" class="nav-link">解耦架构</a>
+            <a href="#scopes" class="nav-link">作用域隔离</a>
+            <a href="#security" class="nav-link">安全策略矩阵</a>
+            <a href="#deploy" class="nav-link">部署与定制</a>
+            <a href="#cases" class="nav-link">实战应用</a>
+            <a href="#guide" class="nav-link">操作指南</a>
+        </div>
+        <a href="https://github.com/yc-software/qm" target="_blank" rel="noopener noreferrer" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-orange-600 transition-colors shadow-sm">
+            GitHub 源码
+        </a>
+    </div>
+</nav>
+
+<main class="pt-24 pb-16 px-6">
+    <!-- Hero Section -->
+    <section id="intro" class="max-w-7xl mx-auto py-12 text-center">
+        <div class="inline-flex items-center space-x-2 px-3 me-2 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-semibold mb-6">
+            <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+            <span>Y Combinator 开源内部企业级 Agent 操作系统</span>
+        </div>
+        <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">
+            颠覆传统个人助手<br/>
+            真正为团队设计的 <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500">Agent OS</span>
+        </h1>
+        <p class="text-base md:text-lg text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+            QM (Quartermaster) 解决了 AI 智能体进入企业生产环境的“最后一公里”痛点。
+            通过<strong>身份隔离（Scoped Isolation）</strong>、<strong>独立安全沙箱（Per-Scope Sandbox）</strong>与<strong>三级管控策略（Security Postures）</strong>，支持多人在 Slack 和 Web 上安全并发协作。
+        </p>
+        
+        <div class="grid md:grid-cols-4 gap-6 text-left">
+            <div class="p-6 glass-card rounded-2xl">
+                <div class="text-2xl mb-3">👥</div>
+                <h3 class="font-bold text-slate-900 text-base mb-1">多用户与作用域隔离</h3>
+                <p class="text-xs text-slate-500 leading-normal">区分 Personal 与 Shared Scope，隔离存储、凭证 Keychain、Memory 与 Cron 自动化。</p>
+            </div>
+            <div class="p-6 glass-card rounded-2xl">
+                <div class="text-2xl mb-3">📦</div>
+                <h3 class="font-bold text-slate-900 text-base mb-1">Per-Scope 持久沙箱</h3>
+                <p class="text-xs text-slate-500 leading-normal">代码与 Shell 命令执行完全运行在独立的 Docker / MicroVM 中，工具安装状态长久保留。</p>
+            </div>
+            <div class="p-6 glass-card rounded-2xl">
+                <div class="text-2xl mb-3">🔄</div>
+                <h3 class="font-bold text-slate-900 text-base mb-1">多 Harness 模型解耦</h3>
+                <p class="text-xs text-slate-500 leading-normal">不锁定 AI 厂商。支持 Claude Code、OpenCode、Codex、Pi 等多种 Agent 循环统一挂载。</p>
+            </div>
+            <div class="p-6 glass-card rounded-2xl">
+                <div class="text-2xl mb-3">🛡️</div>
+                <h3 class="font-bold text-slate-900 text-base mb-1">硬性命令安全拦截</h3>
+                <p class="text-xs text-slate-500 leading-normal">预置 Command Policy，即使处于 Dangerous 模式，依然严禁递归删除与破坏性 SQL。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="arch" class="max-w-7xl mx-auto py-16 border-t border-slate-200/80">
+        <div class="flex flex-col lg:flex-row gap-12 items-center">
+            <div class="flex-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-orange-600 block mb-2">SYSTEM ARCHITECTURE</span>
+                <h2 class="text-3xl font-bold mb-4 text-slate-900">Headless Core 与插件化解耦</h2>
+                <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+                    QM 采用分层结构，核心 Core 采用 TypeScript (Fastify) 开发，仅负责逻辑分发、策略鉴权与 Agent Loop 控制。
+                    持久化层基于 Postgres（保存 Session、Memory 与队列），而所有危险操作下沉至独立的 Sandbox。
+                </p>
+                <div class="space-y-3">
+                    <button onclick="switchArch('core')" id="btn-core" class="w-full text-left p-4 rounded-xl border border-orange-200 bg-orange-50/80 transition-all">
+                        <span class="font-bold text-slate-900 text-sm block">1. Headless Core (TypeScript / Fastify)</span>
+                        <span class="text-xs text-slate-500">统一处理 HTTP/WS 节点、Identity 认证、调度器与通用 Agent 循环。</span>
+                    </button>
+                    <button onclick="switchArch('harness')" id="btn-harness" class="w-full text-left p-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all">
+                        <span class="font-bold text-slate-900 text-sm block">2. Multi-Harness 驱动引擎层</span>
+                        <span class="text-xs text-slate-500">无缝切换 Claude Code / OpenCode / Codex / Pi，无需重构上层业务逻辑。</span>
+                    </button>
+                    <button onclick="switchArch('sbx')" id="btn-sbx" class="w-full text-left p-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all">
+                        <span class="font-bold text-slate-900 text-sm block">3. Per-Scope Sandbox (Docker / MicroVM)</span>
+                        <span class="text-xs text-slate-500">执行 execute 工具命令的隔离计算节点，环境持久化不丢失。</span>
+                    </button>
+                    <button onclick="switchArch('surfaces')" id="btn-surfaces" class="w-full text-left p-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all">
+                        <span class="font-bold text-slate-900 text-sm block">4. 多端 Surfaces (Slack Bot & Web UI)</span>
+                        <span class="text-xs text-slate-500">基于 Bolt 的 Slack Bot 和基于 Lit/Vite 的双视角 Web 交互界面。</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 w-full bg-slate-900 rounded-2xl p-8 shadow-xl relative overflow-hidden min-h-[380px] flex items-center justify-center border border-slate-800">
+                <div id="arch-display" class="text-center transition-all duration-300">
+                    <div class="w-20 h-20 bg-orange-600/20 text-orange-400 border border-orange-500/30 rounded-2xl mx-auto mb-5 flex items-center justify-center text-3xl shadow-lg">
+                        ⚙️
+                    </div>
+                    <h3 class="text-white text-xl font-bold mb-2">Headless Core</h3>
+                    <p class="text-slate-400 text-xs max-w-sm mx-auto leading-relaxed">
+                        无状态/通用的核心引擎，负责身份校验、策略拦截、任务队列调度与多引擎 Loop 协调。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scoped Isolation Interactive Section -->
+    <section id="scopes" class="max-w-7xl mx-auto py-16 border-t border-slate-200/80">
+        <div class="text-center mb-10">
+            <span class="text-xs font-bold uppercase tracking-wider text-orange-600 block mb-2">ISOLATION MODEL</span>
+            <h2 class="text-3xl font-bold text-slate-900 mb-3">作用域隔离（Personal vs Shared）</h2>
+            <p class="text-sm text-slate-600 max-w-2xl mx-auto">
+                QM 彻底打破了“单人助手”与“全局混杂”的困境。不同作用域拥有各自独立的资源视图：
+            </p>
+        </div>
+
+        <div class="flex justify-center mb-8">
+            <div class="bg-slate-200/70 p-1 rounded-xl flex space-x-1 text-xs font-semibold">
+                <button onclick="toggleScope('personal')" id="btn-scope-personal" class="px-6 py-2 rounded-lg tab-btn-active transition-all">
+                    👤 Personal Scope (个人工作区)
+                </button>
+                <button onclick="toggleScope('shared')" id="btn-scope-shared" class="px-6 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                    👥 Shared Scope (团队 Slack / 项目空间)
+                </button>
+            </div>
+        </div>
+
+        <div id="scope-card-container" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Dynamic Content Injected via JS -->
+        </div>
+    </section>
+
+    <!-- Security Matrix Section -->
+    <section id="security" class="max-w-7xl mx-auto py-16 border-t border-slate-200/80">
+        <div class="text-center mb-10">
+            <span class="text-xs font-bold uppercase tracking-wider text-orange-600 block mb-2">SECURITY & AUDIT</span>
+            <h2 class="text-3xl font-bold text-slate-900 mb-3">三级安全防护模式 (Security Postures)</h2>
+            <p class="text-sm text-slate-600 max-w-2xl mx-auto">
+                企业可针对不同 Scope 自由选择管控粒度。无论选择何种模式，硬性 Command Policy 黑名单均持续生效。
+            </p>
+        </div>
+        
+        <div class="chart-container mb-10">
+            <canvas id="securityChart"></canvas>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-md text-xs font-bold">Strict 模式</span>
+                    <span class="text-[10px] text-slate-400">最高安全</span>
+                </div>
+                <p class="text-xs text-slate-600 mb-3">除了无副作用的对话回复外，所有工具调用（Shell、文件写入、网络请求）<strong>均需人工显式批准</strong>。</p>
+                <p class="text-[11px] text-slate-400 border-t pt-2 border-slate-100">适用于：高权限生产账号、财务与数据库敏感操作。</p>
+            </div>
+
+            <div class="p-6 rounded-2xl border-2 border-orange-500 bg-white shadow-md relative">
+                <div class="absolute -top-3 right-4 bg-orange-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Default
+                </div>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="px-2.5 py-1 bg-orange-100 text-orange-800 rounded-md text-xs font-bold">Auto 模式</span>
+                    <span class="text-[10px] text-orange-600 font-semibold">推荐机制</span>
+                </div>
+                <p class="text-xs text-slate-600 mb-3">内置外部内容分类器（Classifier）实时筛查风险，对于高风险命令触发阻断或推送到审批队列。</p>
+                <p class="text-[11px] text-slate-400 border-t pt-2 border-slate-100">适用于：日常开发运维、自动化流程与团队协作。</p>
+            </div>
+
+            <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="px-2.5 py-1 bg-rose-100 text-rose-800 rounded-md text-xs font-bold">Dangerous 模式</span>
+                    <span class="text-[10px] text-rose-500 font-medium">高危调试</span>
+                </div>
+                <p class="text-xs text-slate-600 mb-3">关闭工具调用人工暂停与筛查，获得连贯快速的执行体验。<strong>但依然受底层 Command Policy 保护</strong>。</p>
+                <p class="text-[11px] text-slate-400 border-t pt-2 border-slate-100">适用于：完全隔离的本地沙箱与自动化测试。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Deployment & Customization Section -->
+    <section id="deploy" class="max-w-7xl mx-auto py-16 border-t border-slate-200/80">
+        <div class="mb-10">
+            <span class="text-xs font-bold uppercase tracking-wider text-orange-600 block mb-2">DEPLOYMENT & CUSTOMIZATION</span>
+            <h2 class="text-3xl font-bold text-slate-900 mb-3">部署方式与私有定制架构</h2>
+            <p class="text-sm text-slate-600">根据企业需要，提供零源码部署模式（Deployment Repo）与深度定制模式（Plain Clone）。</p>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-8">
+            <div class="md:w-1/3 space-y-2">
+                <div id="step-nav-1" onclick="jumpStep(1)" class="p-4 cursor-pointer rounded-xl step-active transition-all">
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-orange-600">MODES 01</span>
+                    <h4 class="font-bold text-sm text-slate-900 mt-1">Deployment Repo (标准零源码模式)</h4>
+                </div>
+                <div id="step-nav-2" onclick="jumpStep(2)" class="p-4 cursor-pointer rounded-xl hover:bg-slate-50 transition-all border border-transparent">
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">MODES 02</span>
+                    <h4 class="font-bold text-sm text-slate-900 mt-1">Plain Clone (深度私有定制层)</h4>
+                </div>
+                <div id="step-nav-3" onclick="jumpStep(3)" class="p-4 cursor-pointer rounded-xl hover:bg-slate-50 transition-all border border-transparent">
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">MODES 03</span>
+                    <h4 class="font-bold text-sm text-slate-900 mt-1">同步官方更新 (`update-qm`)</h4>
+                </div>
+            </div>
+
+            <div class="md:w-2/3 bg-slate-900 rounded-2xl p-6 border border-slate-800 text-white flex flex-col justify-between">
+                <div id="step-content">
+                    <!-- Step content injected via JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Practical Enterprise Scenarios -->
+    <section id="cases" class="max-w-7xl mx-auto py-16 border-t border-slate-200/80">
+        <div class="text-center mb-12">
+            <span class="text-xs font-bold uppercase tracking-wider text-orange-600 block mb-2">ENTERPRISE USE CASES</span>
+            <h2 class="text-3xl font-bold text-slate-900">企业实战应用场景</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4 font-bold">
+                    ✉️
+                </div>
+                <h4 class="font-bold text-base text-slate-900 mb-2">收件箱 Triage 与智能草稿</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    在 Personal Scope 中通过 Cron 定时触发，学习员工语气偏好，自动扫描邮件打标签并预生成回复草稿，确认后发送。
+                </p>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl mb-4 font-bold">
+                    🛠️
+                </div>
+                <h4 class="font-bold text-base text-slate-900 mb-2">CI/CD 修复与 PR 自动提交</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    在 Slack 共享频道触发命令，QM 在独立的 Docker 沙箱中拉取仓库、编译测试、提取报错日志并自动创建 GitHub PR。
+                </p>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl mb-4 font-bold">
+                    🌐
+                </div>
+                <h4 class="font-bold text-base text-slate-900 mb-2">内部 Web 应用一键发布</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    只需自然语言指令，QM 即可在沙箱中编译单页 Web 小应用并部署发布给对应 Scope 的团队成员使用。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Practical Operations Guide -->
+    <section id="guide" class="max-w-7xl mx-auto py-16 border-t border-slate-200/80">
+        <div class="text-center mb-10">
+            <span class="text-xs font-bold uppercase tracking-wider text-orange-600 block mb-2">OPERATIONS GUIDE</span>
+            <h2 class="text-3xl font-bold text-slate-900 mb-3">实战操作指南（本地部署与运维）</h2>
+            <p class="text-sm text-slate-600 max-w-2xl mx-auto">
+                从环境准备到日常运维的完整实操步骤，对应 QM 单机部署实例：五组件（Core / Auth / Portal / Web UI / Admin）+ Postgres + mock SMTP + 本地沙箱，模型接入 DeepSeek V4 Flash。
+            </p>
+        </div>
+
+        <div class="overflow-x-auto mb-10 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="px-5 py-3 text-left font-semibold">组件</th>
+                        <th class="px-5 py-3 text-left font-semibold">端口</th>
+                        <th class="px-5 py-3 text-left font-semibold">职责</th>
+                        <th class="px-5 py-3 text-left font-semibold">健康检查</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-600">
+                    <tr><td class="px-5 py-3 font-medium text-slate-900">Core</td><td class="px-5 py-3">8080</td><td class="px-5 py-3">Headless 核心 API，会话/运行/工件/审计（Postgres 持久化）</td><td class="px-5 py-3">GET /healthz → 200</td></tr>
+                    <tr><td class="px-5 py-3 font-medium text-slate-900">Auth Broker</td><td class="px-5 py-3">8099</td><td class="px-5 py-3">OIDC 邮箱魔法链接登录（SMTP / mock 投递）</td><td class="px-5 py-3">GET /healthz → 200</td></tr>
+                    <tr><td class="px-5 py-3 font-medium text-slate-900">Portal</td><td class="px-5 py-3">8097</td><td class="px-5 py-3">SSO 前端入口，反向代理 Web UI / Admin，代理 Auth broker（/idp）</td><td class="px-5 py-3">GET /healthz → 200</td></tr>
+                    <tr><td class="px-5 py-3 font-medium text-slate-900">Web UI</td><td class="px-5 py-3">8096</td><td class="px-5 py-3">Pi 聊天界面（Lit/Vite），支持中文界面</td><td class="px-5 py-3">GET /healthz → 200</td></tr>
+                    <tr><td class="px-5 py-3 font-medium text-slate-900">Admin</td><td class="px-5 py-3">8090</td><td class="px-5 py-3">治理面板：用户 / 授权 / 审计 / 指标，权限以 Core 为准</td><td class="px-5 py-3">GET /healthz → 200</td></tr>
+                    <tr><td class="px-5 py-3 font-medium text-slate-900">Postgres</td><td class="px-5 py-3">5432</td><td class="px-5 py-3">持久化存储（qm-auth-postgres，trust 认证，命名卷）</td><td class="px-5 py-3">pg_isready</td></tr>
+                    <tr><td class="px-5 py-3 font-medium text-slate-900">Mock SMTP</td><td class="px-5 py-3">2525</td><td class="px-5 py-3">验证邮件落盘日志，免真实邮箱服务</td><td class="px-5 py-3">local/mock-smtp.log</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="space-y-6">
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">1</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900 mb-1">环境准备</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Node.js ≥ 24（本实例用 fnm 24.19.0，支持原生 TypeScript 与 <code>--env-file-if-exists</code>）；Docker 运行时（本机为 OrbStack，承载 Postgres 与沙箱）；模型代理走 DeepSeek Anthropic 兼容端点（<code>ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic</code>），有效密钥取自 <code>ANTHROPIC_AUTH_TOKEN</code>。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">2</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900 mb-1">配置 .env（安全密钥 + 模型 + 数据库）</h4>
+                        <p class="text-xs text-slate-500 mb-3 leading-relaxed">根 <code>.env</code> 关键项；五个安全密钥用 <code>openssl rand -hex 32</code> 生成。各插件 <code>plugins/{web-ui,auth,portal,admin}/.env</code> 分别填入对应密钥与 OIDC 配置（Auth broker 作为 IdP，Portal 反向代理）。</p>
+<pre><code>HARNESS=pi
+HARNESS_SECURITY_POSTURE=auto
+MODEL_PROVIDER=anthropic
+PI_MODEL=deepseek-v4-flash
+SESSION_STORE=postgres
+DATABASE_URL=postgres://postgres@127.0.0.1:5432/qm
+ADMIN_GRANTS=2820317139@qq.com:org_admin
+CORE_SIGNING_SECRET=…  CAPABILITY_SECRET=…
+PORTAL_IDENTITY_SECRET=…  CONNECTOR_SECRET_KEY=…
+SKILL_SIGNING_SECRET=…</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">3</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900 mb-1">启动基础设施：Postgres + mock SMTP</h4>
+<pre><code># Postgres（trust 认证，命名卷持久化，随 Docker 自启）
+docker run -d --name qm-auth-postgres \
+  -e POSTGRES_DB=qm -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -p 5432:5432 --restart unless-stopped \
+  -v qm-auth-postgres-data:/var/lib/postgresql/data postgres:16-alpine
+
+# mock SMTP（监听 127.0.0.1:2525，验证邮件写入 local/mock-smtp.log）
+node local/mock-smtp.mjs</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">4</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900 mb-1">启动五个服务（Node 24）</h4>
+<pre><code>NODE=/…/fnm/node-versions/v24.19.0/installation/bin/node
+$NODE --env-file-if-exists=.env src/index.ts                    # Core       :8080
+$NODE --env-file-if-exists=plugins/auth/.env plugins/auth/src/index.ts         # Auth       :8099
+$NODE --env-file-if-exists=plugins/portal/.env plugins/portal/src/index.ts     # Portal     :8097
+$NODE --env-file-if-exists=plugins/web-ui/.env plugins/web-ui/server/index.ts  # Web UI     :8096
+$NODE --env-file-if-exists=plugins/admin/.env plugins/admin/src/index.ts       # Admin      :8090</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">5</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900 mb-1">邮箱登录（mock 发信，无需真实邮箱服务）</h4>
+                        <p class="text-xs text-slate-500 mb-3 leading-relaxed">浏览器打开 <code>http://localhost:8097</code> → 输入邮箱（如 <code>2820317139@qq.com</code>）→ 提示“检查邮箱”后，从 <code>local/mock-smtp.log</code> 取出一次性验证链接 <code>http://localhost:8097/idp/verify#token=…</code> 打开即完成登录。该邮箱已在 <code>ADMIN_GRANTS</code> 中，自动成为 <code>org_admin</code>。</p>
+<pre><code>grep -o 'verify#token=[^ ]*' local/mock-smtp.log | tail -1</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">6</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900 mb-1">模型接入：DeepSeek V4 Flash</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            ① 模型注册表 <code>src/model/pi-models.ts</code> 新增 <code>deepseek-v4-flash</code> 条目（克隆 Anthropic 模板，128K 上下文）；② <code>resolveModel</code> 检测到 <code>ANTHROPIC_BASE_URL</code> 时覆盖 Anthropic 系模型的 <code>baseUrl</code>，请求统一走 <code>https://api.deepseek.com/anthropic</code>（该端点会把 claude 模型名自动映射为对应 deepseek 模型）；③ 对话界面模型选择器在 <code>plugins/web-ui/src/model-options.ts</code> 与 <code>pi-models.ts</code> 登记后即可选择，改完重新 <code>vite build</code>。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">7</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900 mb-1">沙箱镜像构建</h4>
+                        <p class="text-xs text-slate-500 mb-3 leading-relaxed">产物 <code>qm-sandbox-local:latest</code>（内置 node 24 / claude-code / codex / gh / aws cli）。磁盘不足时清理 <code>~/Library/Caches</code> 应用缓存；GitHub 资产限速时改用 <code>ghfast.top</code> 前缀的临时构建文件（不修改仓库核心）。</p>
+<pre><code>bash scripts/local-sandbox-build.sh
+docker run --rm --platform linux/amd64 qm-sandbox-local:latest sh -c 'node -v; claude --version; codex --version'</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 glass-card rounded-2xl border border-slate-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-9 h-9 bg-orange-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">8</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900 mb-1">管理员操作（Admin 治理面板）</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            经 Portal 访问 <code>/admin</code>：用户列表、org_admin 授予 / 撤销、审计日志、指标与保留分析。所有权限以 Core 的 <code>admin_grants</code> 为唯一来源、按请求实时校验（<code>GET /admin/api/whoami</code> 返回 <code>isAdmin / role / scopeId</code>）。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="bg-slate-900 text-slate-400 py-12 px-6 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center pb-8 border-b border-slate-800 mb-6">
+        <div class="mb-4 md:mb-0">
+            <span class="text-white font-bold text-lg">YC QM (Quartermaster)</span>
+            <p class="text-xs text-slate-500 mt-0.5">Multiplayer Agent Harness for Work · Released under MIT License</p>
+        </div>
+        <div class="flex space-x-6 text-xs font-medium text-slate-400">
+            <a href="https://github.com/yc-software/qm" target="_blank" class="hover:text-white transition-colors">GitHub Repository</a>
+            <a href="#security" class="hover:text-white transition-colors">Security Model</a>
+            <a href="#deploy" class="hover:text-white transition-colors">Deployment Docs</a>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center text-xs text-slate-600">
+        <p>© 2026 Y Combinator / QM Framework. Open Source Software.</p>
+        <p class="mt-2 sm:mt-0">Built for Enterprise Agent Workflows.</p>
+    </div>
+</footer>
+
+<script>
+    // 架构说明切换数据
+    const archData = {
+        core: {
+            title: 'Headless Core (TypeScript / Fastify)',
+            icon: '⚙️',
+            desc: '无状态的核心引擎，处理 API 接入、Identity 身份认证、全套权限 Policy 校验以及任务队列与 Agent 循环调度。'
+        },
+        harness: {
+            title: 'Multi-Harness 驱动层',
+            icon: '🔄',
+            desc: '实现模型与 Agent Loop 的高度解耦。支持 Claude Code、OpenCode、Codex、Pi 等多种驱动，避免厂商锁定。'
+        },
+        sbx: {
+            title: 'Per-Scope Sandbox (Docker/MicroVM)',
+            icon: '📦',
+            desc: '专属于该 Scope 的持久化隔离计算机。Agent 运行 execute 命令安装的依赖包与工具链不会因会话结束而丢失。'
+        },
+        surfaces: {
+            title: 'Multi-Surfaces 接入层',
+            icon: '💻',
+            desc: '支持 基于 Slack Bolt 的机器人插件和基于 Lit/Vite 的双视角 Web 前端界面，身份无缝贯通。'
+        }
+    };
+
+    function switchArch(key) {
+        const display = document.getElementById('arch-display');
+        const btns = ['btn-core', 'btn-harness', 'btn-sbx', 'btn-surfaces'];
+        
+        btns.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.className = 'w-full text-left p-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all';
+        });
+        
+        const activeBtn = document.getElementById('btn-' + key);
+        if (activeBtn) {
+            activeBtn.className = 'w-full text-left p-4 rounded-xl border border-orange-200 bg-orange-50/80 transition-all';
+        }
+        
+        display.style.opacity = '0';
+        setTimeout(() => {
+            display.innerHTML = `
+                <div class="w-20 h-20 bg-orange-600/20 text-orange-400 border border-orange-500/30 rounded-2xl mx-auto mb-5 flex items-center justify-center text-3xl shadow-lg">
+                    ${archData[key].icon}
+                </div>
+                <h3 class="text-white text-xl font-bold mb-2">${archData[key].title}</h3>
+                <p class="text-slate-400 text-xs max-w-sm mx-auto leading-relaxed">${archData[key].desc}</p>
+            `;
+            display.style.opacity = '1';
+        }, 150);
+    }
+
+    // Scope 数据
+    const scopeData = {
+        personal: [
+            { icon: '💾', title: '专属 Memory', desc: '仅个人可见的上下文偏好与习惯积累' },
+            { icon: '🔑', title: 'Keychain 凭证', desc: '隔离存储的个人 OAuth 密钥与 API Key' },
+            { icon: '⏰', title: '个人 Cron 任务', desc: '如收件箱 Triage、每日简报自动化' },
+            { icon: '🐳', title: '独立 Sandbox 节点', desc: '专属于该员工的计算容器与持久化文件' }
+        ],
+        shared: [
+            { icon: '🧠', title: '团队记忆库', desc: '包含项目文档与 Slack 频道讨论背景' },
+            { icon: '🛠️', title: '共享技能包 (Skills)', desc: '团队共用的自定义 Skill 工具链与模版' },
+            { icon: '🤖', title: '群组 Cron 机器人', desc: '定时构建监控、代码审查与更新播报' },
+            { icon: '📁', title: '项目共享文件系统', desc: '团队代码仓库、中间产物与文档空间' }
+        ]
+    };
+
+    function toggleScope(type) {
+        const btnP = document.getElementById('btn-scope-personal');
+        const btnS = document.getElementById('btn-scope-shared');
+        const container = document.getElementById('scope-card-container');
+
+        if (type === 'personal') {
+            btnP.className = 'px-6 py-2 rounded-lg tab-btn-active transition-all';
+            btnS.className = 'px-6 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+        } else {
+            btnS.className = 'px-6 py-2 rounded-lg tab-btn-active transition-all';
+            btnP.className = 'px-6 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+        }
+
+        const items = scopeData[type];
+        container.innerHTML = items.map(item => `
+            <div class="p-5 glass-card rounded-xl border border-slate-200">
+                <div class="text-2xl mb-2">${item.icon}</div>
+                <h4 class="font-bold text-slate-900 text-sm mb-1">${item.title}</h4>
+                <p class="text-xs text-slate-500 leading-normal">${item.desc}</p>
+            </div>
+        `).join('');
+    }
+
+    // 初始化 Scope 内容
+    toggleScope('personal');
+
+    // 图表初始化
+    const ctx = document.getElementById('securityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+            labels: ['严格度 (Strictness)', '自动化流畅度 (Automation)', '执行速度 (Speed)', '审计完整度 (Audit Depth)', '风险隔离 (Isolation)'],
+            datasets: [{
+                label: 'Auto 模式配置',
+                data: [75, 85, 80, 95, 90],
+                backgroundColor: [
+                    'rgba(249, 115, 22, 0.6)',
+                    'rgba(56, 189, 248, 0.6)',
+                    'rgba(168, 85, 247, 0.6)',
+                    'rgba(34, 197, 94, 0.6)',
+                    'rgba(244, 63, 94, 0.6)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    ticks: { display: false }
+                }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+            }
+        }
+    });
+
+    // 部署步骤说明数据
+    const steps = [
+        {},
+        {
+            title: "Deployment Repo 模式 (推荐零源码部署)",
+            desc: "企业不需要克隆 QM 主干代码，只需创建一个新的仓库并引入 @yc-software/qm 依赖。",
+            code: "mkdir my-org-qm && cd my-org-qm\n\n# 运行初始化命令行\nnpm exec --yes --package=@yc-software/qm@latest -- \\\n  qm init . --org my-team --target fly\n\nnpm install"
+        },
+        {
+            title: "Plain Clone 模式 (深度私有化定制层)",
+            desc: "若需要修改核心逻辑或定制专用工具包，通过裸镜像克隆创建私有仓库（勿直接用 GitHub Fork 按钮避免凭证曝光）。",
+            code: "gh repo create <your-org>/qm-private --private\n\n# 镜像推送到私有仓库\ngit clone --bare git@github.com:yc-software/qm.git qm-seed.git\ngit -C qm-seed.git push --mirror git@github.com:<your-org>/qm-private.git\nrm -rf qm-seed.git\n\n# 所有定制代码存放在隔离层:\ndeploy/layers/<your-org>/"
+        },
+        {
+            title: "同步上游官方更新 (`update-qm`)",
+            desc: "因为保持 deploy/layers/<your-org>/ 目录与 upstream 主干隔离，可无缝运行 QM 内置同步命令。",
+            code: "# 运行 update-qm 自动将 YC 官方 upstream/main 合并至私有仓库\nnpx qm update-qm\n\n# 校验服务配置与 Live 连通性\nnpx qm validate"
+        }
+    ];
+
+    function jumpStep(idx) {
+        const content = document.getElementById('step-content');
+        
+        for (let i = 1; i <= 3; i++) {
+            const nav = document.getElementById('step-nav-' + i);
+            if (nav) {
+                nav.className = 'p-4 cursor-pointer rounded-xl hover:bg-slate-50 transition-all border border-transparent';
+                nav.querySelector('span').className = 'text-[10px] font-extrabold uppercase tracking-widest text-slate-400';
+            }
+        }
+        
+        const activeNav = document.getElementById('step-nav-' + idx);
+        if (activeNav) {
+            activeNav.className = 'p-4 cursor-pointer rounded-xl step-active transition-all';
+            activeNav.querySelector('span').className = 'text-[10px] font-extrabold uppercase tracking-widest text-orange-600';
+        }
+
+        content.innerHTML = `
+            <div>
+                <h3 class="text-base font-bold text-white mb-2">${steps[idx].title}</h3>
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">${steps[idx].desc}</p>
+                <pre><code>${steps[idx].code}</code></pre>
+            </div>
+        `;
+    }
+
+    // 初始化 Step 1
+    jumpStep(1);
+</script>
+
+</body>
+</html>

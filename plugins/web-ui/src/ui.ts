@@ -1,5 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { ChevronDown, createElement, type IconNode } from "lucide";
+import { t } from "./i18n";
 
 export function brandName(): string {
   if (typeof document === "undefined") return "QM";
@@ -61,10 +62,10 @@ export function initials(s: string): string {
 
 export function relTime(ms: number): string {
   const s = Math.max(0, Math.floor((Date.now() - ms) / 1000));
-  if (s < 60) return "just now";
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
+  if (s < 60) return t("just now");
+  if (s < 3600) return t("{n}m ago", { n: Math.floor(s / 60) });
+  if (s < 86400) return t("{n}h ago", { n: Math.floor(s / 3600) });
+  return t("{n}d ago", { n: Math.floor(s / 86400) });
 }
 
 export function formatBytes(bytes: number): string {
@@ -102,7 +103,7 @@ export async function copyText(text: string, btn?: HTMLButtonElement): Promise<v
       const active = copyFeedback.get(btn);
       if (active) clearTimeout(active.timer);
       const html = active?.html ?? btn.innerHTML;
-      btn.textContent = "Copied";
+      btn.textContent = t("Copied");
       const timer = setTimeout(() => {
         btn.innerHTML = html;
         copyFeedback.delete(btn);
@@ -116,7 +117,7 @@ export async function copyText(text: string, btn?: HTMLButtonElement): Promise<v
 
 export function actionSnippet(action: string): string {
   const s = action.trim().replace(/\s+/g, " ");
-  return s.length > 48 ? `${s.slice(0, 47)}…` : s || "(no action)";
+  return s.length > 48 ? `${s.slice(0, 47)}…` : s || t("(no action)");
 }
 
 export function closeFormMenus(): boolean {
