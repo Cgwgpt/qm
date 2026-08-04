@@ -82,6 +82,8 @@ npm install
 
 在单机上跑起完整五组件（Core / Auth / Portal / Web UI / Admin）并用邮箱登录，按以下步骤操作。
 
+> 配好 `.env` 后也可一键启动全部组件：`bash scripts/dev-up.sh`（幂等：自动建 postgres、缺失时构建 web-ui、起 mock-smtp 与五个服务并等待就绪）。停止用 `bash scripts/dev-down.sh`。
+
 ### 环境要求
 
 - **Node.js ≥ 24**（原生 TypeScript 与 `--env-file-if-exists` 支持）
